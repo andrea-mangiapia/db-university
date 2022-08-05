@@ -3,7 +3,7 @@
 SELECT `students`.`name`, `students`.`surname`, `degrees`.`name`, `degrees`.`level` 
 FROM `students`
 JOIN `degrees`
-ON `degrees`.`id` = `students`.`degree_id`
+ON `students`.`degree_id` = `degrees`.`id`
 WHERE `degrees`.`name` = 'Corso di Laurea in Economia';
 
 ______________________________________________
@@ -12,7 +12,7 @@ ______________________________________________
 SELECT `departments`.`name` AS `name_department`, `degrees`.`name` AS `name_degree`, `degrees`.`level` AS `level_degree`
 FROM `degrees`
 JOIN `departments`
-ON `departments`.`id` = `degrees`.`department_id`
+ON `degrees`.`department_id` = `departments`.`id`
 WHERE `departments`.`name` = 'Dipartimento di Neuroscienze';
 
 ______________________________________________
@@ -21,7 +21,7 @@ ______________________________________________
 SELECT `courses`.`name` AS `name_course`, `courses`.`description` AS `description_course`, `courses`.`period` AS `period_course`, `courses`.`year` AS `year_course`, `teachers`.`name` AS `name_teacher`, `teachers`.`surname` AS `surname_teacher`
 FROM `courses`
 JOIN `course_teacher`
-ON `courses`.`id` = `course_teacher`.`course_id`
+ON `course_teacher`.`course_id` = `courses`.`id`
 JOIN `teachers`
 ON `course_teacher`.`teacher_id` = `teachers`.`id`
 WHERE `teachers`.`id` = '44';
@@ -35,7 +35,7 @@ JOIN `degrees`
 ON `students`.`degree_id` = `degrees`.`id`
 JOIN `departments`
 ON `degrees`.`department_id` = `departments`.`id`
-ORDER BY `students`.`name`, `students`.`surname` ASC;
+ORDER BY `students`.`surname`, `students`.`name` ASC;
 
 ______________________________________________
 5. Selezionare tutti i corsi di laurea con i relativi corsi e insegnanti
@@ -62,7 +62,44 @@ JOIN `degrees`
 ON	`courses`.`degree_id` = `degrees`.`id`
 JOIN `departments`
 ON `departments`.`id` = `degrees`.`department_id`
-WHERE `degrees`.`department_id` = '5';
+WHERE `degrees`.`department_id` = 5;
 
 ______________________________________________
 7. BONUS: Selezionare per ogni studente quanti tentativi d’esame ha sostenuto per superare ciascuno dei suoi esami
+
+​
+--QUERY START:
+SELECT *
+FROM `students`
+JOIN `exam_student` ON `students`.`id` = `exam_student`.`student_id`
+JOIN `exams` ON `exam_student`.`exam_id` = `exams`.`id`
+JOIN `courses` ON `exams`.`course_id` = `courses`.`id`
+​
+--QUERY FINITA NO FILTRI:
+SELECT `students`.`id`, 
+	   `students`.`name`, 
+       `students`.`surname`, 
+       `courses`.`name`, 
+       COUNT(`exam_student`.`vote`) AS 'numero_tentativi'
+FROM `students`
+JOIN `exam_student` ON `students`.`id` = `exam_student`.`student_id`
+JOIN `exams` ON `exam_student`.`exam_id` = `exams`.`id`
+JOIN `courses` ON `exams`.`course_id` = `courses`.`id`
+GROUP BY `students`.`id`, 
+		 `courses`.`id`
+​
+​
+--QUERY COMPLETA:
+SELECT `students`.`id`, 
+	   `students`.`name`, 
+       `students`.`surname`, 
+       `courses`.`name`, 
+       COUNT(`exam_student`.`vote`) AS 'numero_tentativi',
+	   MAX(`exam_student`.`vote`) AS `voto_massimo`
+FROM `students`
+JOIN `exam_student` ON `students`.`id` = `exam_student`.`student_id`
+JOIN `exams` ON `exam_student`.`exam_id` = `exams`.`id`
+JOIN `courses` ON `exams`.`course_id` = `courses`.`id`
+GROUP BY `students`.`id`, 
+		 `courses`.`id`
+HAVING `voto_massimo` >= 18
